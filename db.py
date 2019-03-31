@@ -18,11 +18,12 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     tweet_id = Column(Integer)
     screen_name = Column(String)
-    friends = Column(ARRAY(Integer))
+    friends = Column(String)
+    chat = Column(Integer)
 
     def __repr__(self):
-        return "<User(id={}, tweet_id={}, screen_name='{}', friends='{}')>".format(
-            self.id, self.tweet_id, self.screen_name, self.friends
+        return "<User(id={}, tweet_id={}, screen_name='{}', friends='{}', chat='{}')>".format(
+            self.id, self.tweet_id, self.screen_name, self.friends, self.chat
         )
 
 

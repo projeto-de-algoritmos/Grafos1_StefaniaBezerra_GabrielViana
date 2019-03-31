@@ -15,7 +15,7 @@ HELP = """
  /new NAME
  /delete ID
  /list
- 
+
  /help
  /help_github_token
 """
@@ -31,33 +31,33 @@ class Handler(object):
         self.services = Services()
 
     @classmethod
-    def __delete_dependency(cls, update, task):
-        for i in task.dependencies.split(',')[:-1]:
+    def __delete_dependency(cls, update, user):
+        for i in user.dependencies.split(',')[:-1]:
             i = int(i)
             query_loop = db.session.query(User).filter_by(
                 id=i, chat=update.message.chat_id)
-            task_loop = query_loop.one()
-            task_loop.parents = task_loop.parents.replace(
-                '{},'.format(task.id), '')
-        task.dependencies = ''
+            user_loop = query_loop.one()
+            user_loop.parents = user_loop.parents.replace(
+                '{},'.format(user.id), '')
+        user.dependencies = ''
 
-    def __set_dependency(self, depids, update, task, bot):
+    def __set_dependency(self, depids, update, user, bot):
         for depid in depids[1:]:
             if depid.isdigit():
                 depid = int(depid)
                 query = db.session.query(User).filter_by(id=depid,
                                                          chat=update.message.chat_id)
                 try:
-                    taskdep = query.one()
-                    taskdep.parents += str(task.id) + ','
+                    userdep = query.one()
+                    userdep.parents += str(user.id) + ','
                 except sqlalchemy.orm.exc.NoResultFound:
                     self.services.not_found_message(bot, update, depid)
                     continue
 
-                deplist = task.dependencies.split(',')
+                deplist = user.dependencies.split(',')
                 LOGGER.info("Deplist %s", deplist)
-                if not self.services.a_is_in_b(update, depid, task):
-                    task.dependencies += str(depid) + ','
+                if not self.services.a_is_in_b(update, depid, user):
+                    user.dependencies += str(depid) + ','
                     bot.send_message(
                         chat_id=update.message.chat_id,
                         text="User {} dependencies up to date".format(depid))
@@ -82,13 +82,14 @@ class Handler(object):
         text = ''
         for each_word in args:
             text += each_word + ' '
-        task = User(chat=update.message.chat_id, name='{}'.format(text),
-                    status='TODO', dependencies='', parents='', priority='')
-        db.session.add(task)
+
+        user = User(chat=update.message.chat_id, screen_name='{}'.format(text),
+                    friends='', tweet_id='')
+        db.session.add(user)
         db.session.commit()
         bot.send_message(chat_id=update.message.chat_id,
-                         text="New task *TODO* [[{}]] {}"
-                         .format(task.id, task.name))
+                         text="Username[[{}]] {}"
+                         .format(user.id, user.screen_name))
 
     def echo(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id,
@@ -107,44 +108,40 @@ class Handler(object):
     def delete(self, bot, update, args):
         for i in args:
             if i.isdigit():
-                task_id = int(i)
-                task_id = int(args[0])
+                user_id = int(i)
+                user_id = int(args[0])
                 query = db.session.query(User).filter_by(
-                    id=task_id, chat=update.message.chat_id)
+                    id=user_id, chat=update.message.chat_id)
                 try:
-                    task = query.one()
+                    user = query.one()
                 except sqlalchemy.orm.exc.NoResultFound:
-                    self.services.not_found_message(bot, update, task_id)
+                    self.services.not_found_message(bot, update, user_id)
                     return
-                for each_task in task.dependencies.split(',')[:-1]:
+                for each_user in user.dependencies.split(',')[:-1]:
                     each_query = db.session.query(User).filter_by(
-                        id=int(each_task), chat=update.message.chat_id)
-                    each_task = each_query.one()
-                    each_task.parents = each_task.parents.replace(
-                        '{},'.format(task.id), '')
-                db.session.delete(task)
+                        id=int(each_user), chat=update.message.chat_id)
+                    each_user = each_query.one()
+                    each_user.parents = each_user.parents.replace(
+                        '{},'.format(user.id), '')
+                db.session.delete(user)
                 db.session.commit()
                 bot.send_message(chat_id=update.message.chat_id,
-                                 text="User [[{}]] deleted".format(task_id))
+                                 text="User [[{}]] deleted".format(user_id))
             else:
                 bot.send_message(chat_id=update.message.chat_id,
-                                 text="You must inform the task id")
+                                 text="You must inform the user id")
 
     def list(self, bot, update):
         message = ''
 
         message += '📋 User List\n'
         query = db.session.query(User).filter_by(
-            parents='', chat=update.message.chat_id).order_by(User.id)
-        for task in query.all():
+            friends='', chat=update.message.chat_id).order_by(User.id)
+        for user in query.all():
             icon = '🆕'
-            if task.status == 'DOING':
-                icon = '🔘'
-            elif task.status == 'DONE':
-                icon = '✔️'
-
-            message += '[[{}]] {} {}\n'.format(task.id, icon, task.name)
-            message += self.services.deps_text(task=task,
+            
+            message += '[[{}]] {} {}\n'.format(user.id, icon, user.screen_name)
+            message += self.services.deps_text(user=user,
                                                chat=update.message.chat_id)
 
         bot.send_message(chat_id=update.message.chat_id, text=message)
@@ -154,22 +151,22 @@ class Handler(object):
         query = db.session.query(User).filter_by(
             status='TODO', chat=update.message.chat_id).order_by(User.id)
         message += '\n🆕 *TODO*\n'
-        for task in query.all():
-            if task.duedate != None:
+        for user in query.all():
+            if user.duedate != None:
                 message += '[[{}]] {} -- Delivery date: {}\n'.format(
-                    task.id, task.name, task.duedate)
+                    user.id, user.name, user.duedate)
             else:
-                message += '[[{}]] {}\n'.format(task.id, task.name)
+                message += '[[{}]] {}\n'.format(user.id, user.name)
         query = db.session.query(User).filter_by(
             status='DOING', chat=update.message.chat_id).order_by(User.id)
         message += '\n🔘 *DOING*\n'
-        for task in query.all():
-            message += '[[{}]] {}\n'.format(task.id, task.name)
+        for user in query.all():
+            message += '[[{}]] {}\n'.format(user.id, user.name)
         query = db.session.query(User).filter_by(
             status='DONE', chat=update.message.chat_id).order_by(User.id)
         message += '\n✔️ *DONE*\n'
-        for task in query.all():
-            message += '[[{}]] {}\n'.format(task.id, task.name)
+        for user in query.all():
+            message += '[[{}]] {}\n'.format(user.id, user.name)
 
         bot.send_message(chat_id=update.message.chat_id, text=message)
 
@@ -178,11 +175,11 @@ class Handler(object):
         message = ''
         query = db.session.query(User).filter_by(
             chat=update.message.chat_id).order_by(User.id)
-        for task in query.all():
-            if task.priority == '':
-                message += "[[{}]] {} doesn't have priority {}\n".format(task.id, task.name.upper(),
-                                                                         task.priority.upper())
+        for user in query.all():
+            if user.priority == '':
+                message += "[[{}]] {} doesn't have priority {}\n".format(user.id, user.name.upper(),
+                                                                         user.priority.upper())
             else:
-                message += '[[{}]] {} | priority {}\n'.format(task.id, task.name.upper(),
-                                                              task.priority.upper())
+                message += '[[{}]] {} | priority {}\n'.format(user.id, user.name.upper(),
+                                                              user.priority.upper())
         bot.send_message(chat_id=update.message.chat_id, text=message)

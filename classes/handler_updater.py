@@ -31,6 +31,8 @@ class HandlerUpdater(object):
             command_handler = CommandHandler('help', handler.help)
         elif task_command == 'list_handler':
             command_handler = CommandHandler('list', handler.list)
+        elif task_command == 'echo_handler':
+            command_handler = MessageHandler(Filters.text, handler.echo)
         return command_handler
 
     @classmethod

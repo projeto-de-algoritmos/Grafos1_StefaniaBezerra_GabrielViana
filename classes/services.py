@@ -10,29 +10,29 @@ LOGGER = logging.getLogger('root')
 LOGGER.info("Running %s", sys.argv[0])
 
 class Services(object):
-    def deps_text(self, task, chat, preceed=''):
+    def deps_text(self, user, chat, preceed=''):
         text = ''
 
-        for i in range(len(task.dependencies.split(',')[:-1])):
-            line = preceed
-            query = db.session.query(User).filter_by(
-                id=int(task.dependencies.split(',')[:-1][i]), chat=chat)
-            dep = query.one()
-
-            icon = '🆕'
-            if dep.status == 'DOING':
-                icon = '🔘'
-            elif dep.status == 'DONE':
-                icon = '✔️'
-
-            if i + 1 == len(task.dependencies.split(',')[:-1]):
-                line += '└── [[{}]] {} {}\n'.format(dep.id, icon, dep.name)
-                line += self.deps_text(dep, chat, preceed + '    ')
-            else:
-                line += '├── [[{}]] {} {}\n'.format(dep.id, icon, dep.name)
-                line += self.deps_text(dep, chat, preceed + '│   ')
-
-            text += line
+        # for i in range(len(task.dependencies.split(',')[:-1])):
+        #     line = preceed
+        #     query = db.session.query(User).filter_by(
+        #         id=int(task.dependencies.split(',')[:-1][i]), chat=chat)
+        #     dep = query.one()
+        #
+        #     icon = '🆕'
+        #     if dep.status == 'DOING':
+        #         icon = '🔘'
+        #     elif dep.status == 'DONE':
+        #         icon = '✔️'
+        #
+        #     if i + 1 == len(task.dependencies.split(',')[:-1]):
+        #         line += '└── [[{}]] {} {}\n'.format(dep.id, icon, dep.name)
+        #         line += self.deps_text(dep, chat, preceed + '    ')
+        #     else:
+        #         line += '├── [[{}]] {} {}\n'.format(dep.id, icon, dep.name)
+        #         line += self.deps_text(dep, chat, preceed + '│   ')
+        #
+        #     text += line
 
         return text
 
@@ -62,7 +62,7 @@ class Services(object):
             else:
                 query = db.session.query(User).filter_by(id=dependency_list[0],
                                                 chat=update.message.chat_id).one()
-                
+
                 task_id = query.one()
                 return self.a_is_in_b(update, task_id, task)
 
