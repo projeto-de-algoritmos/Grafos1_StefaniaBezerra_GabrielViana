@@ -2,3 +2,6 @@ sqlalchemy
 requests
 python-telegram-bot
 pygithub
+future
+requests
+requests-oauthlib
