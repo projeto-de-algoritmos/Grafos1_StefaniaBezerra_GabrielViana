@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import logging
+from db import User
 import db
-from db import Task
 
 FORMAT = '%(asctime)s -- %(levelname)s -- %(module)s %(lineno)d -- %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -15,7 +15,7 @@ class Services(object):
 
         for i in range(len(task.dependencies.split(',')[:-1])):
             line = preceed
-            query = db.session.query(Task).filter_by(
+            query = db.session.query(User).filter_by(
                 id=int(task.dependencies.split(',')[:-1][i]), chat=chat)
             dep = query.one()
 
@@ -60,7 +60,7 @@ class Services(object):
             if dependency_id in dependency_list:
                 return True
             else:
-                query = db.session.query(Task).filter_by(id=dependency_list[0],
+                query = db.session.query(User).filter_by(id=dependency_list[0],
                                                 chat=update.message.chat_id).one()
                 
                 task_id = query.one()
@@ -72,4 +72,4 @@ class Services(object):
     def not_found_message(cls, bot, update, task_id):
         bot.send_message(
             chat_id=update.message.chat_id,
-            text="_404_ Task {} not found 🙈".format(task_id))
+            text="_404_ User {} not found 🙈".format(task_id))
