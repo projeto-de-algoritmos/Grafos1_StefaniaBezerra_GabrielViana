@@ -11,34 +11,20 @@ session = Session()
 
 Base = declarative_base()
 
-class Task(Base):
-    __tablename__ = 'tasks'
+
+class User(Base):
+    __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    chat = Column(Integer)
-    name = Column(String)
-    status = Column(String)
-    dependencies = Column(String)
-    parents = Column(String)
-    priority = Column(String)
-    duedate = Column(Date)
+    tweet_id = Column(Integer)
+    screen_name = Column(String)
+    friends = Column(ARRAY(Integer))
 
     def __repr__(self):
-        return "<Task(id={}, chat={}, name='{}', status='{}', priority='{}', dependencies='{}', duedate='{}')>".format(
-                self.id, self.chat, self.name, self.status,
-                self.priority, self.dependencies, self.duedate
+        return "<User(id={}, tweet_id={}, screen_name='{}', friends='{}')>".format(
+            self.id, self.tweet_id, self.screen_name, self.friends
         )
 
-class GithubIssueTable(Base):
-    __tablename__ = 'github_issues_table'
-
-    id = Column(Integer, primary_key=True)
-    token = Column(Integer)
-
-    def __repr__(self):
-        return "<GithubIssueTable(id={}, token={})>".format(
-            self.id, self.token
-        )
 
 Base.metadata.create_all(engine)
 
