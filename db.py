@@ -24,8 +24,20 @@ class Task(Base):
     duedate = Column(Date)
 
     def __repr__(self):
-        return "<Task(id={}, chat={}, name='{}', status='{}')>".format(
-            self.id, self.chat, self.name, self.status
+        return "<Task(id={}, chat={}, name='{}', status='{}', priority='{}', dependencies='{}', duedate='{}')>".format(
+                self.id, self.chat, self.name, self.status,
+                self.priority, self.dependencies, self.duedate
+        )
+
+class GithubIssueTable(Base):
+    __tablename__ = 'github_issues_table'
+
+    id = Column(Integer, primary_key=True)
+    token = Column(Integer)
+
+    def __repr__(self):
+        return "<GithubIssueTable(id={}, token={})>".format(
+            self.id, self.token
         )
 
 Base.metadata.create_all(engine)

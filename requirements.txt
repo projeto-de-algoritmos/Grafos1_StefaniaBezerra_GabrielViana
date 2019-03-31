@@ -1,1 +1,4 @@
 sqlalchemy
+requests
+python-telegram-bot
+pygithub
