@@ -8,6 +8,7 @@ from telegram import ReplyKeyboardRemove
 from db import User
 import db
 from classes.services import Services
+import twitter
 
 TUTORIAL = "https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/"
 
@@ -29,6 +30,13 @@ LOGGER.info("Running %s", sys.argv[0])
 class Handler(object):
     def __init__(self):
         self.services = Services()
+
+    @classmethod
+    def auth():
+        return twitter.Api(consumer_key='i9d3USYOnSST9icTKv5KP4VT2',
+                          consumer_secret='Xv3mtlsyksSC16efsva4izjnEKwWHevgTVKEarAHVZBw0cLsxE',
+                          access_token_key='198884980-hXTcHPBX7ZD2fPWf97Xl80mOw2O2QIaP7RigrrbE',
+                          access_token_secret='qCi0D867Qw0ZpdpY8enxZtf11TIkQiyYK4uI0JR7ryjo1')
 
     @classmethod
     def __delete_dependency(cls, update, user):
@@ -85,12 +93,28 @@ class Handler(object):
 
         user = User(chat=update.message.chat_id, screen_name='{}'.format(text),
                     friends='', tweet_id='')
+
+        api = twitter.Api(consumer_key='i9d3USYOnSST9icTKv5KP4VT2',
+                          consumer_secret='Xv3mtlsyksSC16efsva4izjnEKwWHevgTVKEarAHVZBw0cLsxE',
+                          access_token_key='198884980-hXTcHPBX7ZD2fPWf97Xl80mOw2O2QIaP7RigrrbE',
+                          access_token_secret='qCi0D867Qw0ZpdpY8enxZtf11TIkQiyYK4uI0JR7ryjo1')
+
+        statuses = api.GetFriends(screen_name='{}'.format(text))
+        # print([s.text for s in statuses])
+
+
         db.session.add(user)
         db.session.commit()
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Username[[{}]] {}"
-                         .format(user.id, user.screen_name))
+        messages = []
+        for s in statuses:
+            message = s.AsDict().get('name')
+            messages.append(message)
 
+        bot.send_message(chat_id=update.message.chat_id,
+                        text="Username[[{}]] {}"
+                        .format(user.id, user.screen_name) +'abigo stoaki:' + str(messages))
+
+    
     def echo(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id,
                          text="I'm sorry, {}. I'm afraid I can't do {}."
@@ -139,7 +163,7 @@ class Handler(object):
             friends='', chat=update.message.chat_id).order_by(User.id)
         for user in query.all():
             icon = '🆕'
-            
+
             message += '[[{}]] {} {}\n'.format(user.id, icon, user.screen_name)
             message += self.services.deps_text(user=user,
                                                chat=update.message.chat_id)
