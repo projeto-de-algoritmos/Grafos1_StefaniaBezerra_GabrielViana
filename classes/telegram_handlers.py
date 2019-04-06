@@ -94,10 +94,10 @@ class Handler(object):
         user = User(chat=update.message.chat_id, screen_name='{}'.format(text),
                     friends='', tweet_id='')
 
-        api = twitter.Api(consumer_key='i9d3USYOnSST9icTKv5KP4VT2',
-                          consumer_secret='Xv3mtlsyksSC16efsva4izjnEKwWHevgTVKEarAHVZBw0cLsxE',
-                          access_token_key='198884980-hXTcHPBX7ZD2fPWf97Xl80mOw2O2QIaP7RigrrbE',
-                          access_token_secret='qCi0D867Qw0ZpdpY8enxZtf11TIkQiyYK4uI0JR7ryjo1')
+        api = twitter.Api(consumer_key='',
+                          consumer_secret='',
+                          access_token_key='',
+                          access_token_secret='')
 
         statuses = api.GetFriends(screen_name='{}'.format(text))
         # print([s.text for s in statuses])
